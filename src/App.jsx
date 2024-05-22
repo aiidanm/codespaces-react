@@ -1,27 +1,45 @@
+import React, { useState } from 'react';
+import axios from 'axios';
 import './App.css';
 
 function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+
+  const sendMessage = async () => {
+    if (input.trim() === '') return;
+
+    const userMessage = { sender: 'user', text: input };
+    setMessages([...messages, userMessage]);
+    setInput('');
+
+    try {
+      const response = await axios.post('http://localhost:3000/chat', { message: input });
+      const botMessage = { sender: 'bot', text: response.data.message };
+      setMessages([...messages, userMessage, botMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src="Octocat.png" className="App-logo" alt="logo" />
-        <p>
-          GitHub Codespaces <span className="heart">♥️</span> React
-        </p>
-        <p className="small">
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+      <h1>Chat with GPT</h1>
+      <div id="chat-box">
+        {messages.map((message, index) => (
+          <div key={index} className={`message ${message.sender}`}>
+            {message.text}
+          </div>
+        ))}
+      </div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Type a message..."
+        id="chat-input"
+      />
+      <button onClick={sendMessage}>Send</button>
     </div>
   );
 }
